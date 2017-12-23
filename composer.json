@@ -1,6 +1,7 @@
 {
     "name": "irfantoor/collection",
     "description": "Collection implementing ArrayAccess, Countable and IteratorAggregate",
+    "keywords": ["collection","array","countable","iterator"],
     "type": "library",
     "license": "MIT",
     "authors": [
@@ -9,5 +10,27 @@
             "email": "email@irfantoor.com"
         }
     ],
-    "require": {}
+    "require": {
+        "php": ">=7.0"
+    },
+    "require-dev": {
+        "squizlabs/php_codesniffer": "^3.2",
+        "phpunit/phpunit": "^6.5"
+    },
+    "autoload": {
+        "classmap": [
+            "src/"
+        ],
+        "psr-4": {
+            "IrfanTOOR\\": "src"
+        }
+    },
+    "scripts": {
+        "test": [
+            "@phpunit",
+            "@phpcs"
+        ],
+        "phpunit": "php vendor/bin/phpunit tests",
+        "phpcs": "php vendor/bin/phpcs src"
+    }
 }
