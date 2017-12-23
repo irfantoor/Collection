@@ -1,0 +1,13 @@
+{
+    "name": "irfantoor/collection",
+    "description": "Collection implementing ArrayAccess, Countable and IteratorAggregate",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Irfan TOOR",
+            "email": "email@irfantoor.com"
+        }
+    ],
+    "require": {}
+}
