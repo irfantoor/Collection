@@ -32,7 +32,7 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
     // =========================================================================
 
     /**
-     * Constructs the container
+     * Constructs the collection
      *
      * @param Array $init array of key, value pair to initialize our
      *                    collection with e.g. ['hello' => 'world']
@@ -68,7 +68,7 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
 
     /**
      * Sets an $identifier and its Value pair
-     * It is defined separately to extend the container
+     * It is defined separately to extend the collection
      *
      * @param String $id    identifier
      * @param Mixed  $value value of identifier
@@ -91,7 +91,7 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
     }
 
     /**
-     * Returns true if the container can return an entry for the given
+     * Returns true if the collection can return an entry for the given
      * identifier, returns false otherwise.
      *
      * `has($id)` returning true does not mean that `get($id)` will not throw
@@ -115,7 +115,7 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
     }
 
     /**
-     * Finds an entry of the container by its identifier and returns it.
+     * Finds an entry of the collection by its identifier and returns it.
      *
      * @param String $id      Identifier of the entry to look for.
      * @param Mixed  $default A default value.
@@ -139,7 +139,7 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
     }
 
     /**
-     * Removes the value from identified by an identifier from the container
+     * Removes the value from identified by an identifier from the colection
      *
      * @param String $id identifier
      *
