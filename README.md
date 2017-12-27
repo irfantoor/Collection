@@ -1,4 +1,4 @@
-# collection
+# IrfanTOOR\\Collection
 Collection implementing ArrayAccess, Countable and IteratorAggregate
 
 The identifiers can use dot notation to access an identifier down a hierarchical

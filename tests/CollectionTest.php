@@ -11,7 +11,7 @@
 use IrfanTOOR\Collection;
 use PHPUnit\Framework\TestCase;
 
-class CllectionTest extends TestCase
+class CollectionTest extends TestCase
 {
     function getCollection($init = null)
     {

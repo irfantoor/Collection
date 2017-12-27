@@ -59,7 +59,7 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
                 $this->set($k, $v);
             }
         } elseif (is_string($id)) {
-            $this->_setItem($id, $value);
+            $this->setItem($id, $value);
             return true;
         } else {
             return false;
@@ -68,14 +68,14 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
 
     /**
      * Sets an $identifier and its Value pair
-     * It is defined separately to extend the collection
+     * It is defined separately to facilitate extending the collection
      *
      * @param String $id    identifier
      * @param Mixed  $value value of identifier
      *
      * @return boolval true If successful in setting, false otherwise
      */
-    private function _setItem($id, $value)
+    public function setItem($id, $value)
     {
         if (strpos($id, '.') !== false) {
             eval(
