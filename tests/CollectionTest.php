@@ -9,9 +9,9 @@
  */
 
 use IrfanTOOR\Collection;
-use PHPUnit\Framework\TestCase;
+use IrfanTOOR\Test;
 
-class CollectionTest extends TestCase
+class CollectionTest extends Test
 {
     function getCollection($init = null)
     {
