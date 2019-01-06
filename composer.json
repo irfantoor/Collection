@@ -27,10 +27,10 @@
     },
     "scripts": {
         "test": [
-            "@phpunit",
+            "@ittest",
             "@phpcs"
         ],
-        "phpunit": "php vendor/bin/phpunit tests",
+        "ittest": "php vendor/bin/test tests",
         "phpcs": "php vendor/bin/phpcs src"
     }
 }
