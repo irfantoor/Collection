@@ -15,7 +15,7 @@
     },
     "require-dev": {
         "squizlabs/php_codesniffer": "^3.2",
-        "irfantoor/test": "^0.1.1"
+        "irfantoor/test": "dev-master"
     },
     "autoload": {
         "classmap": [
