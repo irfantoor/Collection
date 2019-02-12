@@ -35,6 +35,35 @@ class CollectionTest extends Test
         $this->assertInstanceOf('IrfanTOOR\Collection', $c);
     }
 
+    function testInit()
+    {
+        $c = new Collection();
+        $this->assertArray($c->toArray());
+        $this->assertEquals([], $c->toArray());
+
+        $c = $this->getCollection($init);
+        $this->assertEquals('world!', $c->get('hello'));
+        $this->assertEquals('My App', $c->get('app.name'));
+        $this->assertEquals('1.1', $c->get('app.version'));
+
+        $init = [
+            'hello' => 'World!',
+        ];
+
+        $c = $this->getCollection($init);
+        $this->assertEquals(1, $c->count());
+        $this->assertEquals('World!', $c->get('hello'));
+    }  
+
+    function testVersion()
+    {
+        $c = $this->getCollection();
+        $version = \IrfanTOOR\Collection\Constants::VERSION;
+        $this->assertNotEmpty($c->version());
+        $this->assertString($c->version());
+        $this->assertEquals($version, $c->version());
+    }
+
     function testHas()
     {
         $c = $this->getCollection();

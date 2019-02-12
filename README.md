@@ -5,6 +5,8 @@ The identifiers can use dot notation to access an identifier down a hierarchical
 level, e.g. to access ```$config['debug']['log']['file']``` you can code in
 doted notation as: ```$config['debug.log.file']```
 
+The collection package includes another class [#readonly-collection](IrfanTOOR\\Collection\\ReadonlyCollection) as well.
+
 ## Initializing
 
 You can initialize by passing an array of key value pairs while creating a new instance.
@@ -14,7 +16,7 @@ You can initialize by passing an array of key value pairs while creating a new i
 
 use IrfanTOOR\Collection;
 
-$config = new IrfanTOOR\Collection([
+$app = new IrfanTOOR\Collection([
 	'app' => [
 		'name' => 'My App',
 		'version' => '1.1',
@@ -37,16 +39,16 @@ You can by set an identifier in the collection by using the method 'set':
 ```php
 use IrfanTOOR\Collection;
 
-$config = new IrfanTOOR\Collection();
+$app = new IrfanTOOR\Collection();
 
 # setting hello => world
-$config->set('hello', 'world');
+$app->set('hello', 'world');
 
 # using an array notation
-$config->set(['hello' => 'world']);
+$app->set(['hello' => 'world']);
 
 # defining multiple
-$config->set([
+$app->set([
   'hello'     => 'world',
   'box'       => 'empty',
   'something' => null,
@@ -57,15 +59,15 @@ $config->set([
 ]);
 
 # defining sub values
-$config->set('app.name', 'Another App');
-$config->set('debug.level', 2);
+$app->set('app.name', 'Another App');
+$app->set('debug.level', 2);
 ```
 
 or by using array access mechanism:
 
 ```php
-$config['hello'] = 'world';
-$config['debug.log.file'] = '/my/debug/log/file.log';
+$app['hello'] = 'world';
+$app['debug.log.file'] = '/my/debug/log/file.log';
 ```
 
 ## Getting
@@ -74,20 +76,20 @@ You can get the stored value in the collection by its identifier using the
 method 'get':
 
 ```php
-$debug_level = $config->get('debug.level');
+$debug_level = $app->get('debug.level');
 
 # returns the value stored against this identifier or returns 0 if the identifier
 # is not present in the collection
-$debug_log_level = $config->get('debug.log.level', 0);
+$debug_log_level = $app->get('debug.log.level', 0);
 ```
 you can also use the array access:
 
 ```php
-$debug_level = $config['debug.level'];
+$debug_level = $app['debug.level'];
 
 # returns the value stored against this identifier or returns 0 if the identifier
 # is not present in the collection
-$debug_log_level = $config['debug.log.level'] ?: 0;
+$debug_log_level = $app['debug.log.level'] ?: 0;
 ```
 
 ## Checking if a value is present in the collection
@@ -96,7 +98,7 @@ You can use the method 'has' to check if the collection has an entry identified
 with the identifier id:
 
 ```php
-if ($config->has('debug.level')) {
+if ($app->has('debug.level')) {
   # this will be executed even if the given identifier has the value NULL, 0
   # or false
   echo 'debug.level is present in the collection'
@@ -106,7 +108,7 @@ if ($config->has('debug.level')) {
 using the array access the above code will become:
 
 ```php
-if (isset($config['debug.level']) {
+if (isset($app['debug.level']) {
   # this will be executed even if the given identifier has the value NULL, 0
   # or false
   echo 'debug.level is present in the collection'
@@ -119,10 +121,10 @@ You can use the method 'remove' or unset on the element:
 
 ```php
 # using method remove
-$config->remove('debug.level');
+$app->remove('debug.level');
 
 # using unset
-unset($config['debug.level']);
+unset($app['debug.level']);
 ```
 
 ## Collection to Array
@@ -130,14 +132,14 @@ unset($config['debug.level']);
 The method 'toArray' can be used to convert the collection into an array:
 
 ```php
-$config_array = $config->toArray();
+$array = $app->toArray();
 ```
 
 ## Array of identifiers
 The array of identifiers can be retrieved by using the method 'keys':
 
 ```php
-$ids_array = $config->keys();
+$ids_array = $app->keys();
 ```
 
 ## Count
@@ -147,7 +149,7 @@ The number of items present in the collection can be retrieved using the method
 
 ```php
 # will return 2 for the Collection defined in initialization section
-$count = $config->count();
+$count = $app->count();
 ```
 
 ## Iteration
@@ -156,7 +158,7 @@ The collection can directly be used in a foreach loop or wherever an iterator
 is used. for example the code:
 
 ```php
-foreach($config->toArray() as $k => $v)
+foreach($app->toArray() as $k => $v)
 {
     print_r([$k => $v]);
 }
@@ -165,8 +167,41 @@ foreach($config->toArray() as $k => $v)
 can be simplified as:
 
 ```php
-foreach($config as $k => $v)
+foreach($app as $k => $v)
 {
     print_r([$k => $v]);
 }
+```
+
+<a id="readonly-collection"></a>
+# IrfanTOOR\\Collection\\ReadonlyCollection
+
+Readonly collection can be used and exploited the very way a collection is used, except that when once it is initialised, the values can not be added, modified, or removed from the collection.
+
+Use case for a readonly collection is configuration of an application.
+
+e.g.
+
+```php
+$config = new IrfanTOOR\\Collection\\ReadonlyCollection([
+  'app' => [
+    'name' => 'My App',
+    'version' => '1.1',
+  ],
+  'debug' => [
+    'level' => 1,
+    'log'   => [
+      'enabled' => 0,
+      'channel' => 'DEBUG',
+      'file'    => '/tmp/debug.log',
+    ],
+  ]
+]);
+
+# will not modify the values
+$config->set('debug.level', 0);
+$config->set('app.version', '1.2');
+
+# will not remove the value
+$config->remove('debug.log');
 ```

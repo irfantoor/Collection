@@ -1,22 +1,31 @@
 <?php
 /**
- * IrfanTOOR\Collection
+ * Collection
+ * php version 7.0
  *
+ * @category  Collection
+ * @package   IrfanTOOR_Collection
  * @author    Irfan TOOR <email@irfantoor.com>
  * @copyright 2017 Irfan TOOR
- * @license   https://github.com/irfantoor/collection/blob/master/LICENSE (MIT License)
- * @link      https://github.com/irfantoor/collection/src/Collection.php
+ * @license   https://github.com/irfantoor/collection/blob/master/LICENSE (MIT)
+ * @link      https://github.com/irfantoor/collection/blob/master/src/Collection.php
  */
 
 namespace IrfanTOOR;
 
 use ArrayIterator;
+use Exception;
+use IrfanTOOR\Collection\Constants;
 
 /**
  * Collection implementing ArrayAccess, Countable and IteratorAggregate
  *
- * This class provides a common interface which can be used by any other
- * class or framework
+ * @category  Collection
+ * @package   IrfanTOOR_Collection
+ * @author    Irfan TOOR <email@irfantoor.com>
+ * @copyright 2017 Irfan TOOR
+ * @license   https://github.com/irfantoor/collection/blob/master/LICENSE (MIT)
+ * @link      https://github.com/irfantoor/collection/blob/master/src/Collection.php
  */
 class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
 {
@@ -44,6 +53,16 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
     }
 
     /**
+     * Returns the current version of the package
+     *
+     * @return string git version of this package
+     */
+    public function version()
+    {
+        return Constants::VERSION;
+    }    
+
+    /**
      * Sets an $identifier and its Value pair
      *
      * @param String $id    identifier or array of id, value pairs
@@ -59,8 +78,7 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
                 $this->set($k, $v);
             }
         } elseif (is_string($id)) {
-            $this->setItem($id, $value);
-            return true;
+            return $this->setItem($id, $value);
         } else {
             return false;
         }
@@ -77,16 +95,21 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
      */
     public function setItem($id, $value)
     {
-        if (strpos($id, '.') !== false) {
-            eval(
-                '$this->data' .
-                "['" .
-                str_replace('.', "']['", $id) .
-                "']" .
-                '= $value;'
-            );
-        } else {
-            $this->data[$id] = $value;
+        try {
+            if (strpos($id, '.') !== false) {
+                eval(
+                    '$this->data' .
+                    "['" .
+                    str_replace('.', "']['", $id) .
+                    "']" .
+                    '= $value;'
+                );
+            } else {
+                $this->data[$id] = $value;
+            }
+            return true;
+        } catch (Exception $e) {
+            return false;
         }
     }
 

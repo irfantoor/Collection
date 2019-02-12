@@ -1,7 +1,7 @@
 {
     "name": "irfantoor/collection",
     "description": "Collection implementing ArrayAccess, Countable and IteratorAggregate",
-    "keywords": ["collection","array","countable","iterator"],
+    "keywords": ["collection", "array", "countable", "iterator", "readonly"],
     "type": "library",
     "license": "MIT",
     "authors": [
