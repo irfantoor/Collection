@@ -5,7 +5,7 @@ The identifiers can use dot notation to access an identifier down a hierarchical
 level, e.g. to access ```$config['debug']['log']['file']``` you can code in
 doted notation as: ```$config['debug.log.file']```
 
-The collection package includes another class [#readonly-collection](IrfanTOOR\\Collection\\ReadonlyCollection) as well.
+The collection package includes a readonly collection as well: <a href="#readonly-collection">IrfanTOOR\Collection\ReadonlyCollection</a>.
 
 ## Initializing
 
@@ -183,7 +183,7 @@ Use case for a readonly collection is configuration of an application.
 e.g.
 
 ```php
-$config = new IrfanTOOR\\Collection\\ReadonlyCollection([
+$config = new IrfanTOOR\Collection\ReadonlyCollection([
   'app' => [
     'name' => 'My App',
     'version' => '1.1',
