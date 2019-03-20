@@ -23,5 +23,5 @@ namespace IrfanTOOR\Collection;
  */
 class Constants
 {
-    public const VERSION = '1.3.2';
+    public const VERSION = '1.3.3';
 }
