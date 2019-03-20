@@ -36,6 +36,13 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
      */
     protected $data = [];
 
+    /**
+     * Semaphore to indicate that the data is locked
+     *
+     * @var bool
+     */
+    protected $locked = false;
+
     // =========================================================================
     // Collection
     // =========================================================================
@@ -53,6 +60,16 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
     }
 
     /**
+     * Locks the collection against modifications
+     *
+     * @return nothing
+     */
+    public function lock()
+    {
+        $this->locked = true;
+    }
+
+    /**
      * Returns the current version of the package
      *
      * @return string git version of this package
@@ -60,7 +77,7 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
     public function version()
     {
         return Constants::VERSION;
-    }    
+    }
 
     /**
      * Sets an $identifier and its Value pair
@@ -73,6 +90,10 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
      */
     public function set($id, $value = null)
     {
+        if ($this->locked) {
+            return false;
+        }
+
         if (is_array($id)) {
             foreach ($id as $k => $v) {
                 $this->set($k, $v);
@@ -95,6 +116,10 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
      */
     public function setItem($id, $value)
     {
+        if ($this->locked) {
+            return false;
+        }
+
         try {
             if (strpos($id, '.') !== false) {
                 eval(
@@ -170,6 +195,10 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
      */
     public function remove($id)
     {
+        if ($this->locked) {
+            return false;
+        }
+
         if (strpos($id, '.') !== false) {
             $k = '$this->data' . "['" . str_replace('.', "']['", $id) . "']";
             eval('$has = isset(' . $k . ');');
