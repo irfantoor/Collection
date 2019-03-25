@@ -14,8 +14,8 @@
         "php": ">=7.0"
     },
     "require-dev": {
-        "squizlabs/php_codesniffer": "^3.2",
-        "irfantoor/test": "dev-master"
+        "irfantoor/test": "^0.4.3",
+        "squizlabs/php_codesniffer": "^3.2"
     },
     "autoload": {
         "classmap": [
