@@ -58,10 +58,10 @@ class CollectionTest extends Test
     function testVersion()
     {
         $c = $this->getCollection();
-        $version = \IrfanTOOR\Collection\Constants::VERSION;
-        $this->assertNotEmpty($c->version());
-        $this->assertString($c->version());
-        $this->assertEquals($version, $c->version());
+        $version = \IrfanTOOR\Collection::VERSION;
+        $this->assertNotEmpty($c::VERSION);
+        $this->assertString($c::VERSION);
+        $this->assertEquals($version, $c::VERSION);
     }
 
     function testHas()
@@ -175,7 +175,7 @@ class CollectionTest extends Test
         $this->assertEquals(null, $c['something']);
         $this->assertEquals(null, $c['undefined']);
 
-        $c->set(
+        $c->setMultiple(
             [
                 'something' => 'defined',
                 'undefined' => 'now-defined'

@@ -15,7 +15,6 @@ namespace IrfanTOOR;
 
 use ArrayIterator;
 use Exception;
-use IrfanTOOR\Collection\Constants;
 
 /**
  * Collection implementing ArrayAccess, Countable and IteratorAggregate
@@ -29,6 +28,13 @@ use IrfanTOOR\Collection\Constants;
  */
 class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
 {
+    /**
+     * Collection Version
+     *
+     * @var const
+     */    
+    const VERSION = "1.4"; // @@VERSION
+
     /**
      * The source data
      *
@@ -56,7 +62,7 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
     public function __construct($init = [])
     {
         $this->data = [];
-        $this->set($init);
+        $this->setMultiple($init);
     }
 
     /**
@@ -70,39 +76,24 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
     }
 
     /**
-     * Returns the current version of the package
+     * Set Multiple items
      *
-     * @return string git version of this package
-     */
-    public function version()
-    {
-        return Constants::VERSION;
-    }
-
-    /**
-     * Sets an $identifier and its Value pair
-     *
-     * @param String $id    identifier or array of id, value pairs
-     * @param Mixed  $value value of identifier or null if the parameter
-     *                      id is an array
+     * @param Array $data key, value pairs
      *
      * @return boolval true If successful in setting, false otherwise
      */
-    public function set($id, $value = null)
+    public function setMultiple(Array $data)
     {
         if ($this->locked) {
             return false;
         }
 
-        if (is_array($id)) {
-            foreach ($id as $k => $v) {
-                $this->set($k, $v);
-            }
-        } elseif (is_string($id)) {
-            return $this->setItem($id, $value);
-        } else {
-            return false;
+        $r = true;
+        foreach ($data as $k => $v) {
+            $r = $r && $this->set($k, $v);
         }
+
+        return $r;
     }
 
     /**
@@ -114,7 +105,7 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
      *
      * @return boolval true If successful in setting, false otherwise
      */
-    public function setItem($id, $value)
+    public function set($id, $value)
     {
         if ($this->locked) {
             return false;
@@ -270,7 +261,7 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
      *
      * @param String $id The data key
      *
-     * @return Mixed The key's value, or the default value
+     * @return Mixed The key's value, or null if does not exist
      */
     public function offsetGet($id)
     {
