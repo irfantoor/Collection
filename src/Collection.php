@@ -1,7 +1,7 @@
 <?php
 /**
  * Collection
- * php version 7.0
+ * php version 7.3
  *
  * @category  Collection
  * @package   IrfanTOOR_Collection
@@ -33,7 +33,7 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
      *
      * @var const
      */    
-    const VERSION = "1.4"; // @@VERSION
+    const VERSION = "1.5"; // @@VERSION
 
     /**
      * The source data
@@ -48,6 +48,14 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
      * @var bool
      */
     protected $locked = false;
+
+    /**
+     * Semaphore to indicate that the dot notation is active e.g get('hello.world');
+     *
+     * @var bool
+     */
+    protected $dot_notation = true;
+
 
     // =========================================================================
     // Collection
@@ -73,6 +81,16 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
     public function lock()
     {
         $this->locked = true;
+    }
+
+    /**
+     * Turns the dot notation off i.e. a dot can be part of the key
+     *
+     * @return nothing
+     */
+    public function noDotNotation()
+    {
+        $this->dot_notation = false;
     }
 
     /**
@@ -112,7 +130,7 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
         }
 
         try {
-            if (strpos($id, '.') !== false) {
+            if ($this->dot_notation && strpos($id, '.') !== false) {
                 eval(
                     '$this->data' .
                     "['" .
@@ -144,7 +162,7 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
      */
     public function has($id)
     {
-        if (strpos($id, '.') !== false) {
+        if ($this->dot_notation && strpos($id, '.') !== false) {
             $k = '$this->data' . "['" . str_replace('.', "']['", $id) . "']";
             eval('$has = isset(' . $k . ');');
             return $has;
@@ -163,7 +181,7 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
      */
     public function get($id, $default = null)
     {
-        if (strpos($id, '.') !== false) {
+        if ($this->dot_notation && strpos($id, '.') !== false) {
             $k = '$this->data' . "['" . str_replace('.', "']['", $id) . "']";
             eval('$has = isset(' . $k . ');');
             if ($has) {
@@ -190,7 +208,7 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
             return false;
         }
 
-        if (strpos($id, '.') !== false) {
+        if ($this->dot_notation && strpos($id, '.') !== false) {
             $k = '$this->data' . "['" . str_replace('.', "']['", $id) . "']";
             eval('$has = isset(' . $k . ');');
             if ($has) {
