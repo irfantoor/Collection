@@ -6,7 +6,7 @@
  * @category  Collection
  * @package   IrfanTOOR_Collection
  * @author    Irfan TOOR <email@irfantoor.com>
- * @copyright 2017 Irfan TOOR
+ * @copyright 2020 Irfan TOOR
  * @license   https://github.com/irfantoor/collection/blob/master/LICENSE (MIT)
  * @link      https://github.com/irfantoor/collection/blob/master/src/Collection.php
  */
@@ -22,7 +22,7 @@ use Exception;
  * @category  Collection
  * @package   IrfanTOOR_Collection
  * @author    Irfan TOOR <email@irfantoor.com>
- * @copyright 2017 Irfan TOOR
+ * @copyright 2020 Irfan TOOR
  * @license   https://github.com/irfantoor/collection/blob/master/LICENSE (MIT)
  * @link      https://github.com/irfantoor/collection/blob/master/src/Collection.php
  */
@@ -33,7 +33,7 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
      *
      * @var const
      */    
-    const VERSION = "1.5"; // @@VERSION
+    const VERSION = "1.6"; // @@VERSION
 
     /**
      * The source data
@@ -49,14 +49,6 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
      */
     protected $locked = false;
 
-    /**
-     * Semaphore to indicate that the dot notation is active e.g get('hello.world');
-     *
-     * @var bool
-     */
-    protected $dot_notation = true;
-
-
     // =========================================================================
     // Collection
     // =========================================================================
@@ -67,7 +59,7 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
      * @param Array $init array of key, value pair to initialize our
      *                    collection with e.g. ['hello' => 'world']
      */
-    public function __construct($init = [])
+    function __construct($init = [])
     {
         $this->data = [];
         $this->setMultiple($init);
@@ -84,16 +76,6 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
     }
 
     /**
-     * Turns the dot notation off i.e. a dot can be part of the key
-     *
-     * @return nothing
-     */
-    public function noDotNotation()
-    {
-        $this->dot_notation = false;
-    }
-
-    /**
      * Set Multiple items
      *
      * @param Array $data key, value pairs
@@ -102,16 +84,16 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
      */
     public function setMultiple(Array $data)
     {
-        if ($this->locked) {
-            return false;
-        }
+        if ($this->locked) return false;
 
-        $r = true;
+        $result = true;
+        
         foreach ($data as $k => $v) {
-            $r = $r && $this->set($k, $v);
+            $r = $this->set($k, $v);
+            $result = $result && $r;
         }
 
-        return $r;
+        return $result;
     }
 
     /**
@@ -123,24 +105,12 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
      *
      * @return boolval true If successful in setting, false otherwise
      */
-    public function set($id, $value)
+    function set($id, $value)
     {
-        if ($this->locked) {
-            return false;
-        }
+        if ($this->locked) return false;
 
         try {
-            if ($this->dot_notation && strpos($id, '.') !== false) {
-                eval(
-                    '$this->data' .
-                    "['" .
-                    str_replace('.', "']['", $id) .
-                    "']" .
-                    '= $value;'
-                );
-            } else {
-                $this->data[$id] = $value;
-            }
+            eval('$' . "this->data['" . str_replace(".", "']['", $id) . "']" . ' = $value;');
             return true;
         } catch (Exception $e) {
             return false;
@@ -160,15 +130,20 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
      *
      * @return boolval true if found, false otherwise
      */
-    public function has($id)
+    function has($id)
     {
-        if ($this->dot_notation && strpos($id, '.') !== false) {
-            $k = '$this->data' . "['" . str_replace('.', "']['", $id) . "']";
-            eval('$has = isset(' . $k . ');');
-            return $has;
-        } else {
-            return (is_string($id)) ? array_key_exists($id, $this->data) : false;
+        $d = &$this->data;
+        $k = explode('.', $id);
+
+        foreach ($k as $kk) {            
+            if (array_key_exists($kk, $d)) {
+                $d = &$d[$kk];
+            } else {
+                return false;
+            }
         }
+
+        return true;    
     }
 
     /**
@@ -179,20 +154,12 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
      *
      * @return Mixed Entry.
      */
-    public function get($id, $default = null)
+    function get($id, $default = null)
     {
-        if ($this->dot_notation && strpos($id, '.') !== false) {
-            $k = '$this->data' . "['" . str_replace('.', "']['", $id) . "']";
-            eval('$has = isset(' . $k . ');');
-            if ($has) {
-                eval('$value = ' . $k . ';');
-                return $value;
-            } else {
-                return $default;
-            }
-        } else {
-            return $this->has($id) ? $this->data[$id] : $default;
-        }
+        if (!$this->has($id)) return $default;
+
+        eval('$value = $this->data' . "['" . str_replace('.', "']['", $id) . "'];");
+        return $value;
     }
 
     /**
@@ -202,27 +169,16 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
      *
      * @return boolval true if successful in removing, false otherwise
      */
-    public function remove($id)
+    function remove($id)
     {
-        if ($this->locked) {
-            return false;
+        if ($this->locked) return false;
+
+        if ($this->has($id)) {
+            eval('unset($this->data' . "['" . str_replace('.', "']['", $id) . "']);");
+            return true;
         }
 
-        if ($this->dot_notation && strpos($id, '.') !== false) {
-            $k = '$this->data' . "['" . str_replace('.', "']['", $id) . "']";
-            eval('$has = isset(' . $k . ');');
-            if ($has) {
-                eval('unset(' . $k . ');');
-                return true;
-            } else {
-                return false;
-            }
-        } elseif ($this->has($id)) {
-            unset($this->data[$id]);
-            return true;
-        } else {
-            return false;
-        }
+        return false;
     }
 
     /**
@@ -230,7 +186,7 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
      *
      * @return Array The collection's raw data
      */
-    public function toArray()
+    function toArray()
     {
         return $this->data;
     }
@@ -240,7 +196,7 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
      *
      * @return Array The collection's raw data keys
      */
-    public function keys()
+    function keys()
     {
         return array_keys($this->data);
     }
@@ -257,7 +213,7 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
      *
      * @return boolval true if found, false otherwise
      */
-    public function offsetSet($id, $value)
+    function offsetSet($id, $value)
     {
         return $this->set($id, $value);
     }
@@ -269,7 +225,7 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
      *
      * @return boolval true if found, false otherwise
      */
-    public function offsetExists($id)
+    function offsetExists($id)
     {
         return $this->has($id);
     }
@@ -281,7 +237,7 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
      *
      * @return Mixed The key's value, or null if does not exist
      */
-    public function offsetGet($id)
+    function offsetGet($id)
     {
         return $this->get($id, null);
     }
@@ -293,7 +249,7 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
      *
      * @return boolval true if successful, false otherwise
      */
-    public function offsetUnset($id)
+    function offsetUnset($id)
     {
         return $this->remove($id);
     }
@@ -307,7 +263,7 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
      *
      * @return Int
      */
-    public function count()
+    function count()
     {
         return count($this->data);
     }
@@ -321,7 +277,7 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
      *
      * @return ArrayIterator
      */
-    public function getIterator()
+    function getIterator()
     {
         return new ArrayIterator($this->data);
     }

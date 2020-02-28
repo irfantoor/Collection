@@ -343,26 +343,5 @@ class CollectionTest extends Test
         unset($c['app.version']);
         $this->assertTrue($c->has('app.name'));
         $this->assertTrue($c->has('app.version'));
-    }
-
-    function testNoDotNotation()
-    {
-        $c = new Collection();
-        $c->noDotNotation();
-        $c->set('hello', ['world' => 'something']);
-        $this->assertArray($c['hello']);
-
-        $this->assertNull($c['hello.world']);
-        $this->assertFalse(array_key_exists('hello.world', $c->toArray()));
-
-        $c->set('hello.world', 'hello world!');
-        $this->assertTrue(array_key_exists('hello.world', $c->toArray()));
-        $this->assertEquals('hello world!', $c['hello.world']);
-        $this->assertEquals(2, $c->count());
-
-        $c->remove('hello');
-        $this->assertTrue(array_key_exists('hello.world', $c->toArray()));
-        $this->assertEquals('hello world!', $c['hello.world']);
-        $this->assertEquals(1, $c->count());
-    }
+    }      
 }
