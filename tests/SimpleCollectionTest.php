@@ -1,10 +1,22 @@
 <?php
+/**
+ * SimpleCollectionTest
+ * php version 7.3
+ *
+ * @package   IrfanTOOR\Collection
+ * @author    Irfan TOOR <email@irfantoor.com>
+ * @copyright 2020 Irfan TOOR
+ */
 
 use IrfanTOOR\Collection;
-use IrfanTOOR\SingleLevelCollection;
+use IrfanTOOR\Collection\Adapter\{
+    AdapterInterface,
+    ExtendedAdapter,
+    SimpleAdapter,
+};
 use IrfanTOOR\Test;
 
-class SingleLevelCollectionTest extends Test
+class SimpleCollectionTest extends Test
 {
     function getCollection($init = null)
     {
@@ -19,19 +31,20 @@ class SingleLevelCollectionTest extends Test
             ];
         }
 
-        return new SingleLevelCollection($init);
+        return new Collection($init, new SimpleAdapter());
     }
 
     function testCollectionInstance()
     {
         $c = $this->getCollection();
-        $this->assertInstanceOf(SingleLevelCollection::class, $c);
         $this->assertInstanceOf(Collection::class, $c);
+        $this->assertInstanceOf(SimpleAdapter::class, $c->getAdapter());
     }
 
     function testNoDotNotation()
     {
-        $c = new SingleLevelCollection();
+        $c = new Collection([], new SimpleAdapter());
+
         $c->set('hello', ['world' => 'something']);
         $this->assertArray($c['hello']);
 

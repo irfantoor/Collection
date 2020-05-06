@@ -1,11 +1,10 @@
 # IrfanTOOR\\Collection
+
 Collection implementing ArrayAccess, Countable and IteratorAggregate
 
 The identifiers can use dot notation to access an identifier down a hierarchical
 level, e.g. to access ```$config['debug']['log']['file']``` you can code in
 doted notation as: ```$config['debug.log.file']```
-
-Note: You can <a href="#lock">lock</a> a collection to make it readonly .
 
 ## Initializing
 
@@ -16,7 +15,7 @@ You can initialize by passing an array of key value pairs while creating a new i
 
 use IrfanTOOR\Collection;
 
-$app = new IrfanTOOR\Collection([
+$init = [
 	'app' => [
 		'name' => 'My App',
 		'version' => '1.1',
@@ -29,7 +28,21 @@ $app = new IrfanTOOR\Collection([
 			'file'    => '/tmp/debug.log',
 		],
 	]
-]);
+];
+
+$app = new IrfanTOOR\Collection($init);
+```
+
+This will create a collection, by connecting it to ExtendedAdapter by default. Other adapters can be used by providing explicitly:
+
+```php
+use IrfanTOOR\Collection\Adapter\SimpleAdapter;
+
+$app = new IrfanTOOR\Collection($init, new SimpleAdapter());
+# or
+$app = new IrfanTOOR\Collection($init, new PersistantAdapter());
+$app->setFile('backup.json');
+$app->sync();
 ```
 
 ## Setting
@@ -173,7 +186,6 @@ foreach($app as $k => $v)
 }
 ```
 
-<a id="lock"></a>
 ## Lock
 
 A collection can be made read only when once it is initialised by using the lock function, the values can not be added, modified, or removed from the collection afterwards.
@@ -206,4 +218,80 @@ $config->set('app.version', '1.2');
 
 # will not remove the value
 $config->remove('debug.log');
+```
+
+## Adapters
+
+### setAdapter
+
+An adapter can be set for a collection using this method.
+
+e.g.
+
+```php
+$c = new Collection();
+$c->setAdapter(SimpleCollection::class);
+```
+
+Following Adapters are currently available:
+SimpleAdapter     - Dotted notation is not available, dot can be used as part of
+                    the keys. e.g. ```$c['hello']['world'] = true;```
+ExtendedAdapter   - Dotted notation e.g. ```$c['hello.world']``` can be used
+PersistantAdapter - For persistant storage
+
+### getAdapter
+
+Returns the adapter connected to collection.
+
+```php
+$adapter = $c->getAdapter();
+```
+
+## Utility fuctions
+
+### filter
+
+Returns the collection of the elements which return true
+
+NOTE: $callback function must uses parameters in the following order
+for the provided callback function:
+  param_1 $value Value of the current element
+  param_2 $key   Key of the current element
+   
+```php
+  $callback = function ($value, $key) {
+      return is_int($value);
+  };
+
+  $collection_of_int_values = $c->filter($callback);
+```
+
+### map
+
+Returns a collection with the callback applied to the element values
+of this collection:
+
+```php
+  $callback = functin ($value) {
+      return $value * $value;
+  };
+
+  $squares_of_values = $c->map($callback);
+```
+
+### reduce
+
+Reduces the array to a result, by applying the function to all of its elements
+
+NOTE: $callback function must uses parameters in the following order:
+  param_1 $carry Result of callback operation on the previous element
+  param_2 $value Value of the current element
+  param_3 $key   Key of the current element
+
+```php
+  $callback = functin ($carry, $value, $key) {
+      return is_int($value) ? $carry + $value : $carry;
+  };
+
+  $sum_of_values = $c->reduce($callback);
 ```
