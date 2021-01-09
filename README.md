@@ -58,7 +58,7 @@ $app = new IrfanTOOR\Collection();
 $app->set('hello', 'world');
 
 # using an array notation
-$app->set(['hello' => 'world']);
+$app['hello'] = 'world';
 
 # defining multiple
 $app->set([
@@ -102,7 +102,7 @@ $debug_level = $app['debug.level'];
 
 # returns the value stored against this identifier or returns 0 if the identifier
 # is not present in the collection
-$debug_log_level = $app['debug.log.level'] ?: 0;
+$debug_log_level = $app['debug.log.level'] ?? 0;
 ```
 
 ## Checking if a value is present in the collection
@@ -220,33 +220,6 @@ $config->set('app.version', '1.2');
 $config->remove('debug.log');
 ```
 
-## Adapters
-
-### setAdapter
-
-An adapter can be set for a collection using this method.
-
-e.g.
-
-```php
-$c = new Collection();
-$c->setAdapter(SimpleCollection::class);
-```
-
-Following Adapters are currently available:
-SimpleAdapter     - Dotted notation is not available, dot can be used as part of
-                    the keys. e.g. ```$c['hello']['world'] = true;```
-ExtendedAdapter   - Dotted notation e.g. ```$c['hello.world']``` can be used
-PersistantAdapter - For persistant storage
-
-### getAdapter
-
-Returns the adapter connected to collection.
-
-```php
-$adapter = $c->getAdapter();
-```
-
 ## Utility fuctions
 
 ### filter
@@ -259,7 +232,7 @@ for the provided callback function:
   param_2 $key   Key of the current element
    
 ```php
-  $callback = function ($value, $key) {
+  $callback = function ($key, $value) {
       return is_int($value);
   };
 
@@ -272,7 +245,7 @@ Returns a collection with the callback applied to the element values
 of this collection:
 
 ```php
-  $callback = functin ($value) {
+  $callback = functin ($key, $value) {
       return $value * $value;
   };
 
@@ -289,7 +262,7 @@ NOTE: $callback function must uses parameters in the following order:
   param_3 $key   Key of the current element
 
 ```php
-  $callback = functin ($carry, $value, $key) {
+  $callback = functin ($carry, $key, $value) {
       return is_int($value) ? $carry + $value : $carry;
   };
 

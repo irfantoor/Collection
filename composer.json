@@ -3,7 +3,7 @@
     "description": "Collection implementing ArrayAccess, Countable and IteratorAggregate",
     "keywords": [
         "collection", "array", "countable", "iterator", "readonly",
-        "abstraction", "dot-notation", "persistant"
+        "dot-notation", "json", "serializable"
     ],
     "type": "library",
     "license": "MIT",
@@ -17,24 +17,11 @@
         "php": ">=7.3"
     },
     "require-dev": {
-        "irfantoor/test": "^0.6.2",
-        "squizlabs/php_codesniffer": "^3.2",
-        "league/flysystem": "^1.0"
+        "irfantoor/test": "~0.7"
     },
     "autoload": {
         "psr-4": {
-            "IrfanTOOR\\": "src/",
-            "Tests\\": "tests/"
+            "IrfanTOOR\\": "src/"
         }
-    },
-    "suggest": {
-        "league/flysystem": "Allows you to use multiple backends for persistance storage"
-    },    
-    "scripts": {
-        "test": [
-            "@ittest"
-        ],
-        "ittest": "php vendor/bin/test tests",
-        "phpcs": "php vendor/bin/phpcs src"
     }
 }

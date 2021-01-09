@@ -1,119 +1,199 @@
 <?php
+
 /**
  * IrfanTOOR\Collection
  * php version 7.3
  *
- * @package   IrfanTOOR\Collection
  * @author    Irfan TOOR <email@irfantoor.com>
- * @copyright 2020 Irfan TOOR
+ * @copyright 2021 Irfan TOOR
  */
+
 namespace IrfanTOOR;
 
 use ArrayAccess;
 use ArrayIterator;
 use Countable;
-use Exception;
-
-use IrfanTOOR\Collection\Adapter\{
-    AdapterInterface,
-    ExtendedAdapter
-};
-
 use IteratorAggregate;
+use JsonSerializable;
 use Throwable;
 
 /**
- * Collection - It can be considered as an enhansed array, in which
- * you can access the elements using dotted notation e.g:
- * $c = new Collection($init);
- * $element = $c->get('hello.world'); # to access $c['hello']['world'] etc.
+ * Collection - An enhansed array, in which elements can be accessed using 
+ * the dot to sparate the level:
+ *   e.g. $c = new Collection($init); // where $init is a key, value array 
+ *   $element = $c->get('hello.world'); # to access $c['hello']['world'] etc.
+ * Note: The adapters are no longer supported, and collections are considered
+ * to be in memory. Cache, Database or Filesystem can be used to make a
+ * collection persistant.
  */
-class Collection implements ArrayAccess, Countable, IteratorAggregate
+class Collection 
+    implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
 {
-    /**
-     * Collection::VERSION
-     *
-     * @var const
-     */
-    const VERSION = "2.0"; // @@VERSION
+    const NAME        = "Collection";
+    const DESCRIPTION = "A simple collection, with dot notation";
+    const VERSION     = "3.0";
 
-    /**
-     * Adapter
-     *
-     * @var CollectionAdapterInterface
-     */
-    protected $adapter;
+    /** @var array -- to keep track of [$key => $value] pairs */
+    protected $data = [];
+
+    /** @var bool -- Semaphore to track the lock status */
+    private $is_locked = false;
 
     /**
      * Collection constructor
      *
-     * @param array                 $init    Associative are to initialize
-     * @param null|AdapterInterface $adapter CollectionAdapter to use with this 
-     *                                       collection. default is ExtendedAdapter
+     * @param array $init Array containing an associative array of data
      */
-    public function __construct(array $init = [], ?AdapterInterface $adapter = null)
+    public function __construct(?array $init = null)
     {
-        if (!$adapter) {
-            $this->setAdapter(new ExtendedAdapter($init));
-        } else {
-            $this->setAdapter($adapter);
+        if ($init)
             $this->setMultiple($init);
+    }
+
+    /**
+     * Magic methods -- to protect against accidental bad usage
+     */
+    public function __call($method, $args) {}
+    public function __set($key, $value) {}
+    public function __get($key) {return null;}
+
+    /**
+     * Locks the collection, once locked the collection can not be unlocked
+     */
+    public function lock()
+    {
+        $this->is_locked = true;
+    }
+
+    /**
+     * Sets the multiple values
+     *
+     * @param array $data Associative array of key, value pairs
+     * @return bool Result of the operation
+     */
+    public function setMultiple(array $data): bool
+    {
+        if ($this->is_locked)
+            return false;
+
+        $final_result = true;
+
+        foreach ($data as $key => $value) {
+            $result = $this->set($key, $value);
+            $final_result = $final_result && $result;
         }
+
+        return $final_result;
     }
 
     /**
-     * Calls the adapter for the methods
+     * sets a key value pair
      *
-     * @param string $method Adapter method to be called
-     * @param array  $args   Array of parameters to be passed
-     * 
-     * @return mixed
+     * @param string $key   Key of the entity to be stored
+     * @param mixed  $value Value of the entity to be stored
+     * @return bool Result of the operation
      */
-    public function __call(string $method, array $args)
+    public function set(string $key, $value): bool
     {
-        return call_user_func_array([$this->adapter, $method], $args);
-    }
+        if ($this->is_locked)
+            return false;
 
-    /**
-     * Sets the Adapter
-     *
-     * @param mixed $adapter Collection adapter to use (string | AdapterInterface)
-     *
-     * @throws Exception If the provided adapter is neither the classname,
-     *                   nor an object implementing AdapterInterface, or 
-     *                   if the class name can not be initialized
-     *
-     * @return void
-     */
-    public function setAdapter($adapter)
-    {
-        if (is_string($adapter)) {
-            try {
-                $adapter = new $adapter();
-            } catch (Throwable $e) {
-                throw new Exception($e->getMessage());
+        try {
+            if ($pos = strrpos($key, '.')) {
+                $v = $this->get(substr($key, 0, $pos)) ?? null;
+
+                if (!(is_array($v) || is_null($v)))
+                    return false;
             }
-        } elseif (!is_object($adapter)) {
-            throw new Exception("Adapter can either be classname or an object");
-        }
 
-        if (!$adapter instanceof AdapterInterface) {
-            throw new Exception(
-                "Adapter must implement the " . AdapterInterface::class
+            eval(
+                '$' . "this->data['" . str_replace(".", "']['", $key) . "']" .
+                ' = ' .
+                '$value;'
             );
-        }
 
-        $this->adapter = $adapter;
+            return true;
+        } catch (Throwable $e) {
+            return false;
+        }
     }
 
     /**
-     * Returns the Adapter
+     * Verifies if a key is present in the collection
      *
-     * @return AdapterInterface
+     * @param string $key Key of the entity to be verified
+     * @return bool True if present, false otherwise
      */
-    public function getAdapter(): AdapterInterface
+    public function has(string $key): bool
     {
-        return $this->adapter;
+        if (strpos($key, '.') === false) {
+            return array_key_exists($key, $this->data);
+        }
+
+        $d = &$this->data;
+        $kk = explode('.', $key);
+
+        $k = array_shift($kk);
+
+        while ($k !== null) {
+            if (!is_array($d))
+                return false;
+
+            if (array_key_exists($k, $d)) {
+                $d = &$d[$k];
+            } else {
+                return false;
+            }
+
+            $k = array_shift($kk);
+        }
+
+        return true;
+    }
+
+    /**
+     * Retrieves the $value of the entity stored against $key, or $default,
+     * if the $key is not present
+     *
+     * @param string $key     Key of the entity to be retrieved
+     * @param mixed  $default Value to be returned if the key is not found
+     * @return mixed The value of the entity stored against key
+     */
+    public function get(string $key, $default = null)
+    {
+        if (!$this->has($key))
+            return $default;
+
+        eval(
+            '$value' .
+            ' = ' .
+            '$this->data' . "['" . str_replace('.', "']['", $key) . "'];"
+        );
+
+        return $value;
+    }
+
+    /**
+     * Removes an entity
+     *
+     * @param string $key Key of the entity to be removed
+     * @return bool True if the operation was successful, False otherwise
+     */
+    public function remove(string $key): bool
+    {
+        if ($this->is_locked)
+            return false;
+
+        if (!$this->has($key))
+            return false;
+
+        eval(
+            'unset($this->data' .
+            "['" . str_replace('.', "']['", $key) .
+            "']);"
+        );
+
+        return true;
     }
 
     /**
@@ -122,51 +202,57 @@ class Collection implements ArrayAccess, Countable, IteratorAggregate
      *
      * @param string $key   The data key
      * @param mixed  $value The data value
-     *
      * @return bool Result of the operation, true if successful, false otherwise
      */
-    public function offsetSet($key, $value)
+    public function offsetSet($key, $value): bool
     {
-        return $this->adapter->set($key, $value);
+        return $this->set($key, $value);
     }
 
     /**
      * Verifies if the collection has an element using array's notation
      * $planet = $c['water'] ?? 'unknown world!';
      *
-     * @param string $key Key to look for
-     *
-     * @return bool Result of the operation, true if successful, false otherwise
+     * @param string $key Key of the entity to verify
+     * @return bool True if the entity is present, false otherwise
      */
-    public function offsetExists($key)
+    public function offsetExists($key): bool
     {
-        return $this->adapter->has($key);
+        return $this->has($key);
     }
 
     /**
      * Retrieves an element from the collection using array's notation
      * e.g. $planet = $c['hello'];
      *
-     * @param string $key Key of the element
-     *
+     * @param string $key Key of the entity to retrieve
      * @return null|mixed Null if not found or the element
      */
     public function offsetGet($key)
     {
-        return $this->adapter->get($key, null);
+        return $this->get($key, null);
     }
-
+    
     /**
      * Removes an element from the collection using array's notation
      * e.g unset($c['hello']]);
      *
-     * @param string $key Key of the element to look for
-     *
-     * @return bool Result of the operation
+     * @param string $key Key of the element to remove
+     * @return bool True if succefully removed, false otherwise
      */
-    public function offsetUnset($key)
+    public function offsetUnset($key): bool
     {
-        return $this->adapter->remove($key);
+        return $this->remove($key);
+    }
+
+    /**
+     * Returns the collection as an array
+     *
+     * @return array
+     */
+    function toArray(): array
+    {
+        return $this->data;
     }
 
     /**
@@ -177,7 +263,17 @@ class Collection implements ArrayAccess, Countable, IteratorAggregate
      */
     public function getIterator(): ArrayIterator
     {
-        return new ArrayIterator($this->adapter->toArray());
+        return new ArrayIterator($this->toArray());
+    }
+
+    /**
+     * Returns the keys of the collection as an array
+     * 
+     * @return array
+     */
+    public function keys(): array
+    {
+        return array_keys($this->data);
     }
 
     /**
@@ -187,85 +283,69 @@ class Collection implements ArrayAccess, Countable, IteratorAggregate
      */
     public function count(): int
     {
-        return $this->adapter->count();
+        return count($this->data);
     }
-    
+
     /**
-     * Returns the collection of the elements which return true
+     * Class can be json_encoded
+     */
+    public function jsonSerialize()
+    {
+        return $this->toArray();
+    }
+
+    /**
+     * Returns a sub collection, with the elements passing the callback test
+     * e.g. $callback = function ($k, $v) { return is_string($k) && is_int($v); }
      *
-     * NOTE: $callback function must uses parameters in the following order
-     * for the provided callback function:
-     *       param_1 $value Value of the current element
-     *       param_2 $key   Key of the current element
-     *    
-     * example:
-     *       $callback = function ($value, $key) {
-     *           return is_int($value);
-     *       };
-     *
-     *       $collection_of_int_values = $c->filter($callback);
-     *
-     * @param mixed $callback Callback (closure|object|function)
-     *
+     * @param callback|object|closure $callback
      * @return Collection
      */
     public function filter($callback): Collection
     {
-        $result = array_filter(
-            $this->adapter->toArray(), $callback, ARRAY_FILTER_USE_BOTH
-        );
+        $collection = new self();
 
-        return new self($result);
+        foreach ($this->data as $key => $value)
+            if ($callback($key, $value))
+                $collection->set($key, $value);
+
+        return $collection;
     }
 
     /**
-     * Returns a collection with the callback applied to the element values
-     * of this collection:
+     * Returns the collection, with the values callculated by $callback 
+     * e.g. $callback = function($k, $v) { return $v * $v; }
      *
-     * Example:
-     *       $callback = functin ($value) {
-     *           return $value * $value;
-     *       };
-     * 
-     *       $squares_of_values = $c->map($callback);
-     *
-     * @param mixed $callback Callback function (closure|object|function)
-     *
+     * @param callback|object|closure $callback
      * @return Collection
      */
     public function map($callback): Collection
     {
-        $result = array_map($callback, $this->adapter->toArray());
-        return new self($result);
+        $collection = new self();
+
+        foreach ($this->data as $key => $value)
+            $collection->set($key, $callback($key, $value));
+
+        return $collection;
     }
 
     /**
-     * Reduces the array to a result, by applying the function to all of its elements
+     * Rduces the collection to a result, by applying the callback recursively
+     * to previous result and the next element
+     * e.g. $callback = function($k, $v, $carry) = {
+     *                      return $carry + (is_int($v) ? $v : 0};
+     *                  }
      *
-     * NOTE: $callback function must uses parameters in the following order:
-     *       param_1 $carry Result of callback operation on the previous element
-     *       param_2 $value Value of the current element
-     *       param_3 $key   Key of the current element
-     *
-     * Example:
-     *       $callback = functin ($carry, $value, $key) {
-     *           return is_int($value) ? $carry + $value : $carry;
-     *       };
-     *
-     *       $sum_of_values = $c->reduce($callback);
-     *
-     * @param closure|object|function $callback Callback function
-     * @param mixed                   $init     Initial value
-     *
-     * @return mixed
+     * @param callback|object|closure $callback
+     * @param mixed                   $init
+     * @return Collection
      */
     public function reduce($callback, $init = null)
     {
         $carry = $init;
 
-        foreach ($this->adapter->toArray() as $key => $value) {
-            $carry = $callback($carry, $value, $key);
-        }
+        foreach ($this->data as $key => $value)
+            $carry = $callback($key, $value, $carry);
 
         return $carry;
     }
