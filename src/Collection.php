@@ -31,7 +31,7 @@ class Collection
 {
     const NAME        = "Collection";
     const DESCRIPTION = "A simple collection, with dot notation";
-    const VERSION     = "3.0";
+    const VERSION     = "3.0.1";
 
     /** @var array -- to keep track of [$key => $value] pairs */
     protected $data = [];

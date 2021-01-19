@@ -33,18 +33,6 @@ $init = [
 $app = new IrfanTOOR\Collection($init);
 ```
 
-This will create a collection, by connecting it to ExtendedAdapter by default. Other adapters can be used by providing explicitly:
-
-```php
-use IrfanTOOR\Collection\Adapter\SimpleAdapter;
-
-$app = new IrfanTOOR\Collection($init, new SimpleAdapter());
-# or
-$app = new IrfanTOOR\Collection($init, new PersistantAdapter());
-$app->setFile('backup.json');
-$app->sync();
-```
-
 ## Setting
 
 You can by set an identifier in the collection by using the method 'set':
@@ -61,7 +49,7 @@ $app->set('hello', 'world');
 $app['hello'] = 'world';
 
 # defining multiple
-$app->set([
+$app->setMultiple([
   'hello'     => 'world',
   'box'       => 'empty',
   'something' => null,
@@ -232,11 +220,13 @@ for the provided callback function:
   param_2 $key   Key of the current element
    
 ```php
+  $c = new Collection(['10', 1, 2, 3, 4]);
+
   $callback = function ($key, $value) {
-      return is_int($value);
+    return is_int($value);
   };
 
-  $collection_of_int_values = $c->filter($callback);
+  $int = $c->filter($callback); # 1, 2, 3, 4
 ```
 
 ### map
@@ -245,11 +235,12 @@ Returns a collection with the callback applied to the element values
 of this collection:
 
 ```php
-  $callback = functin ($key, $value) {
-      return $value * $value;
+  $callback = function ($key, $value) {
+    return $value * $value;
   };
 
-  $squares_of_values = $c->map($callback);
+  # int is the collection from previous example
+  $int2 = $int->map($callback); # 1, 4, 9, 16
 ```
 
 ### reduce
@@ -262,9 +253,9 @@ NOTE: $callback function must uses parameters in the following order:
   param_3 $key   Key of the current element
 
 ```php
-  $callback = functin ($carry, $key, $value) {
-      return is_int($value) ? $carry + $value : $carry;
+  $callback = function ($key, $value, $carry) {
+    return $carry + $value;
   };
 
-  $sum_of_values = $c->reduce($callback);
+  $sum = $int2->reduce($callback); # 30
 ```
