@@ -2,7 +2,7 @@
 
 /**
  * IrfanTOOR\Collection
- * php version 7.3
+ * php version 7.3, 8.1+
  *
  * @author    Irfan TOOR <email@irfantoor.com>
  * @copyright 2021 Irfan TOOR
@@ -202,11 +202,11 @@ class Collection
      *
      * @param string $key   The data key
      * @param mixed  $value The data value
-     * @return bool Result of the operation, true if successful, false otherwise
+     * @return void
      */
-    public function offsetSet($key, $value): bool
+    public function offsetSet($key, $value): void
     {
-        return $this->set($key, $value);
+        $this->set($key, $value);
     }
 
     /**
@@ -226,9 +226,9 @@ class Collection
      * e.g. $planet = $c['hello'];
      *
      * @param string $key Key of the entity to retrieve
-     * @return null|mixed Null if not found or the element
+     * @return mixed Null if not found or the element
      */
-    public function offsetGet($key)
+    public function offsetGet($key): mixed
     {
         return $this->get($key, null);
     }
@@ -238,11 +238,11 @@ class Collection
      * e.g unset($c['hello']]);
      *
      * @param string $key Key of the element to remove
-     * @return bool True if succefully removed, false otherwise
+     * @return void
      */
-    public function offsetUnset($key): bool
+    public function offsetUnset($key): void
     {
-        return $this->remove($key);
+        $this->remove($key);
     }
 
     /**
@@ -289,7 +289,7 @@ class Collection
     /**
      * Class can be json_encoded
      */
-    public function jsonSerialize()
+    public function jsonSerialize(): mixed
     {
         return $this->toArray();
     }
